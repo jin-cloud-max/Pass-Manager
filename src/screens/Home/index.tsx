@@ -11,6 +11,7 @@ import {
   EmptyListContainer,
   EmptyListMessage
 } from './styles';
+import { Alert } from 'react-native';
 
 interface LoginDataProps {
   id: string;
@@ -22,11 +23,27 @@ interface LoginDataProps {
 type LoginListDataProps = LoginDataProps[];
 
 export function Home() {
-  // const [searchListData, setSearchListData] = useState<LoginListDataProps>([]);
-  // const [data, setData] = useState<LoginListDataProps>([]);
+  const [searchListData, setSearchListData] = useState<LoginListDataProps>([]);
+  const [data, setData] = useState<LoginListDataProps>([]);
 
   async function loadData() {
-    // Get asyncStorage data, use setSearchListData and setData
+    try {
+      const dataKey = '@passmanager:logins'
+      const response = await AsyncStorage.getItem(dataKey)
+      
+
+      if (response) {
+        const searchList = JSON.parse(response)
+
+        setSearchListData(searchList)
+        setData(searchList)
+      }
+
+
+    } catch (error) {
+      console.log(error)
+      Alert.alert('Erro ao carregar informações')
+    }
   }
   useEffect(() => {
     loadData();
@@ -37,7 +54,11 @@ export function Home() {
   }, []));
 
   function handleFilterLoginData(search: string) {
-    // Filter results inside data, save with setSearchListData
+    
+
+    const filteredSearch = data.filter(data => data.title === search)
+   
+    setSearchListData(filteredSearch)
   }
 
   return (

@@ -23,9 +23,13 @@ interface FormData {
 }
 
 const schema = Yup.object().shape({
-  title: Yup.string().required('Título é obrigatório!'),
-  email: Yup.string().email('Não é um email válido').required('Email é obrigatório!'),
-  password: Yup.string().required('Senha é obrigatória!'),
+  title: Yup.string()
+    .required('Título é obrigatório!'),
+  email: Yup.string()
+    .email('Não é um email válido')
+    .required('Email é obrigatório!'),
+  password: Yup.string()
+    .required('Senha é obrigatória!'),
 })
 
 export function RegisterLoginData() {
@@ -36,15 +40,36 @@ export function RegisterLoginData() {
     formState: {
       errors
     }
-  } = useForm();
+  } = useForm({
+    resolver: yupResolver(schema)
+  });
 
   async function handleRegister(formData: FormData) {
+    const dataKey = '@passmanager:logins'
+    
     const newLoginData = {
       id: String(uuid.v4()),
       ...formData
     }
 
-    // Save data on AsyncStorage
+    try {
+      const data = await AsyncStorage.getItem(dataKey)
+
+      const currentData = data ? JSON.parse(data) : []
+
+      const dataFormatted = [
+        ...currentData,
+        newLoginData
+      ]
+
+      await AsyncStorage.setItem(dataKey, JSON.stringify(dataFormatted))
+
+      reset()
+
+    } catch (error) {
+      console.log(error)
+      Alert.alert('Não foi possível salvar')
+    }
   }
 
   return (
@@ -60,9 +85,7 @@ export function RegisterLoginData() {
           <Input
             title="Título"
             name="title"
-            error={
-              // message error here
-            }
+            error={errors.title && errors.title.message}
             control={control}
             placeholder="Escreva o título aqui"
             autoCapitalize="sentences"
@@ -71,9 +94,7 @@ export function RegisterLoginData() {
           <Input
             title="Email"
             name="email"
-            error={
-              // message error here
-            }
+            error={errors.email && errors.email.message}
             control={control}
             placeholder="Escreva o Email aqui"
             autoCorrect={false}
@@ -83,9 +104,7 @@ export function RegisterLoginData() {
           <Input
             title="Senha"
             name="password"
-            error={
-              // message error here
-            }
+            error={errors.password && errors.password.message}
             control={control}
             secureTextEntry
             placeholder="Escreva a senha aqui"
