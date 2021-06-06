@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { RFValue } from 'react-native-responsive-fontsize';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import uuid from 'react-native-uuid';
+
+import { useStorageData } from '../../hooks/storage'
 
 import { Input } from '../../components/Form/Input';
 import { Button } from '../../components/Form/Button';
@@ -15,6 +15,7 @@ import {
   HeaderTitle,
   Form
 } from './styles';
+import { useNavigation } from '@react-navigation/native';
 
 interface FormData {
   title: string;
@@ -44,28 +45,15 @@ export function RegisterLoginData() {
     resolver: yupResolver(schema)
   });
 
+  const { saveData } = useStorageData()
+  const navigation = useNavigation()
+
   async function handleRegister(formData: FormData) {
-    const dataKey = '@passmanager:logins'
-    
-    const newLoginData = {
-      id: String(uuid.v4()),
-      ...formData
-    }
-
     try {
-      const data = await AsyncStorage.getItem(dataKey)
-
-      const currentData = data ? JSON.parse(data) : []
-
-      const dataFormatted = [
-        ...currentData,
-        newLoginData
-      ]
-
-      await AsyncStorage.setItem(dataKey, JSON.stringify(dataFormatted))
+      await saveData(formData) 
 
       reset()
-
+      navigation.navigate('Home')
     } catch (error) {
       console.log(error)
       Alert.alert('Não foi possível salvar')

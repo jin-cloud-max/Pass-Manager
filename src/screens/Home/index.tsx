@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
 import { SearchBar } from '../../components/SearchBar';
 import { LoginDataItem } from '../../components/LoginDataItem';
+import { useStorageData } from '../../hooks/storage'
 
 import {
   Container,
@@ -26,32 +26,31 @@ export function Home() {
   const [searchListData, setSearchListData] = useState<LoginListDataProps>([]);
   const [data, setData] = useState<LoginListDataProps>([]);
 
-  async function loadData() {
+  const { loadData } = useStorageData()
+  
+  async function handleLoadData() {
     try {
-      const dataKey = '@passmanager:logins'
-      const response = await AsyncStorage.getItem(dataKey)
+      const response = await loadData()
       
-
-      if (response) {
-        const searchList = JSON.parse(response)
-
-        setSearchListData(searchList)
-        setData(searchList)
-      }
-
+      setSearchListData(response)
+      setData(response)
+      
 
     } catch (error) {
       console.log(error)
       Alert.alert('Erro ao carregar informações')
     }
   }
-  useEffect(() => {
-    loadData();
-  }, []);
 
-  useFocusEffect(useCallback(() => {
-    loadData();
-  }, []));
+  useEffect(() => {
+    handleLoadData();
+  },[])
+
+  useFocusEffect(
+    useCallback(() => {
+      handleLoadData();
+    }, [])
+  );
 
   function handleFilterLoginData(search: string) {
     
